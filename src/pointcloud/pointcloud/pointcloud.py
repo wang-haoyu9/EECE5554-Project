@@ -27,8 +27,11 @@ class PointCloudNode(Node):
         """
         super().__init__('pointcloud_node')
 
-        self.declare_parameter('ply', 'data/coke_can.ply')
+        self.declare_parameter('ply', 'data/box1_high density.ply')
+        self.declare_parameter('rotation', '0,0,0')
         self.ply_path = self.get_parameter('ply').value
+        # rotation is a tuple of 3 floats (x, y, z)
+        self.rotation = tuple(map(float, self.get_parameter('rotation').value.split(',')))
         _logger.info(f"PLY file path: {self.ply_path}") # DEBUG
 
         if not self.path_check():
@@ -69,12 +72,12 @@ class PointCloudNode(Node):
             string or error occurs.
         """
         message = PointCloud2()
-        message = ply_to_pointcloud2(self.ply_path)
+        message = ply_to_pointcloud2(self.ply_path, self.rotation)
         return message
 
 
 # Run with ROS2 launch (Don't forget to source install/setup.bash):
-#   ros2 launch pointcloud pc_launch.py ply:="/home/why/Documents/EECE5554-Project/data/coke_can.ply"
+#   ros2 launch pointcloud pc_launch.py ply:="/home/why/Documents/EECE5554-Project/data/box1_high density.ply" rotation:="90,0,0"
 def main(args=None):
     """Main executable for gps_driver.driver
     
