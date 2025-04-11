@@ -6,7 +6,7 @@ from std_msgs.msg import Header
 # https://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/PointCloud2.html
 from sensor_msgs.msg import PointCloud2
 
-from pointcloud.dxf2pc import dxf_to_pointcloud2
+from pointcloud.ply2pc import ply_to_pointcloud2
 
 _logger = get_logger('pointcloud')
 
@@ -27,15 +27,15 @@ class PointCloudNode(Node):
         """
         super().__init__('pointcloud_node')
 
-        self.declare_parameter('dxf', 'data/coke_can.dxf')
-        self.dxf_path = self.get_parameter('dxf').value
-        _logger.info(f"DXF file path: {self.dxf_path}") # DEBUG
+        self.declare_parameter('ply', 'data/coke_can.ply')
+        self.ply_path = self.get_parameter('ply').value
+        _logger.info(f"PLY file path: {self.ply_path}") # DEBUG
 
         if not self.path_check():
             raise FileNotFoundError
 
         self.publisher_ = self.create_publisher(PointCloud2, 'pointcloud', 10)
-        timer_period = 10.0 # seconds
+        timer_period = 60.0 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def path_check(self):
@@ -44,8 +44,8 @@ class PointCloudNode(Node):
         Returns:
             bool: True if the path is valid, False otherwise.
         """
-        if not os.path.exists(self.dxf_path):
-            _logger.fatal(f"Path {self.dxf_path} does not exist.")
+        if not os.path.exists(self.ply_path):
+            _logger.fatal(f"Path {self.ply_path} does not exist.")
             return False
         return True
 
@@ -69,12 +69,12 @@ class PointCloudNode(Node):
             string or error occurs.
         """
         message = PointCloud2()
-        message = dxf_to_pointcloud2(self.dxf_path)
+        message = ply_to_pointcloud2(self.ply_path)
         return message
 
 
 # Run with ROS2 launch (Don't forget to source install/setup.bash):
-#   ros2 launch pointcloud pc_launch.py dxf:="/home/why/Documents/EECE5554-Project/data/coke_can.dxf"
+#   ros2 launch pointcloud pc_launch.py ply:="/home/why/Documents/EECE5554-Project/data/coke_can.ply"
 def main(args=None):
     """Main executable for gps_driver.driver
     

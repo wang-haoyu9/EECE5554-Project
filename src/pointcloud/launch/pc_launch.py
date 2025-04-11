@@ -4,14 +4,14 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import SetParameter
 
 def generate_launch_description():
-    dxf_path = LaunchConfiguration('dxf')
+    ply_path = LaunchConfiguration('ply')
 
     return LaunchDescription([
-        SetParameter(name='dxf', value=dxf_path),
+        SetParameter(name='ply', value=ply_path),
         Node(
             package='pointcloud',
             executable='pc_node',
             name='pointcloud_node',
-            parameters=[{'dxf': dxf_path}]
+            parameters=[{'ply': ply_path}]
         )
     ])
