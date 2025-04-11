@@ -1,4 +1,5 @@
 import os
+import sys
 import rclpy
 from rclpy.node import Node
 from rclpy.logging import get_logger
@@ -35,10 +36,14 @@ class PointCloudNode(Node):
         _logger.info(f"PLY file path: {self.ply_path}") # DEBUG
 
         if not self.path_check():
-            raise FileNotFoundError
+            self.stop_node()
 
         self.publisher_ = self.create_publisher(PointCloud2, 'pointcloud', 10)
-        timer_period = 60.0 # seconds
+        
+        # Publish the first message immediately after initialization
+        self.timer_callback()
+
+        timer_period = 300.0 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def path_check(self):
@@ -48,9 +53,14 @@ class PointCloudNode(Node):
             bool: True if the path is valid, False otherwise.
         """
         if not os.path.exists(self.ply_path):
-            _logger.fatal(f"Path {self.ply_path} does not exist.")
+            _logger.fatal(f"Path {self.ply_path} does not exist. A absolute path is recommended.")
             return False
         return True
+
+    def stop_node(self):
+        _logger.info('Shutting down the node...')
+        rclpy.shutdown()
+        sys.exit(0)  # Exit the program cleanly
 
     def timer_callback(self):
         """Callback for ROS2 publisher
@@ -62,6 +72,7 @@ class PointCloudNode(Node):
         # msg can be None or empty
         if msg:
             self.publisher_.publish(msg)
+            _logger.info('Published PointCloud2 message.')
 
     def make_pub_msg(self):
         """Making the customized message to the topic.
