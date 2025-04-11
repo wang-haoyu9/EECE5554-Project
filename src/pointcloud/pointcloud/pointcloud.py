@@ -12,8 +12,7 @@ from pointcloud.ply2pc import ply_to_pointcloud2
 _logger = get_logger('pointcloud')
 
 class PointCloudNode(Node):
-    """Class Driver for GPS driver
-    """
+    """Class Node for PointCloud2"""
 
     global _logger
 
@@ -21,9 +20,9 @@ class PointCloudNode(Node):
         """
         The initialization function does the following:
             All ROS2 node initializing stuff 
-            Set ROS2 node parameter "port" and set default "/dev/ttyUSB0"
-            Create ROS2 publisher for topic "/topic" using customized message "GPSmsg"
-            Open serial port with "port" and set Baud Rate 4800
+            Set ROS2 node parameter "ply", "rotation"
+            Read the PLY file from "ply" and convert it to a PointCloud2 message
+            Create ROS2 publisher for topic "/pointcloud" using customized message "PointCloud2"
             Other settings for ROS2 publisher
         """
         super().__init__('pointcloud_node')
@@ -46,7 +45,7 @@ class PointCloudNode(Node):
         timer_period = 300.0 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
-    def path_check(self):
+    def path_check(self: str) -> bool:
         """Check if the given path is valid.
         
         Returns:
@@ -58,6 +57,7 @@ class PointCloudNode(Node):
         return True
 
     def stop_node(self):
+        """Stop the node and exit the program."""
         _logger.info('Shutting down the node...')
         rclpy.shutdown()
         sys.exit(0)  # Exit the program cleanly
@@ -74,13 +74,11 @@ class PointCloudNode(Node):
             self.publisher_.publish(msg)
             _logger.info('Published PointCloud2 message.')
 
-    def make_pub_msg(self):
+    def make_pub_msg(self) -> PointCloud2:
         """Making the customized message to the topic.
         
         Returns:
-            GPSmsg: customized message :class:`GPSmsg` after being parsed 
-            from GPGGA string read from serial port, or None if not a GPGGA 
-            string or error occurs.
+            PointCloud2: The PointCloud2 message.
         """
         message = PointCloud2()
         message = ply_to_pointcloud2(self.ply_path, self.rotation)
@@ -93,7 +91,8 @@ def main(args=None):
     """Main executable for gps_driver.driver
     
     Parameter:
-        port: serial port address. Default '/dev/ttyUSB0'.
+        ply: PLY file path. An absolute path is recommended.
+        rotation: Rotation angles in degrees (x, y, z). Default is 0,0,0.
     """
     # Node program
     rclpy.init(args=args)
