@@ -7,8 +7,14 @@ import math
 from queue import PriorityQueue
 
 from nav_msgs.msg import OccupancyGrid, MapMetaData, Path
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PointStamped, PoseStamped
 from std_msgs.msg import Header
+
+_x_outbound_from_ = -2
+_x_outbound_to_ = 2
+_y_outbound_from_ = -2
+_y_outbound_to_ = 2
+
 
 # A*算法的基本实现
 def a_star_search(grid, start, goal, obstacle_threshold=50):
@@ -104,47 +110,55 @@ class TSPPlannerNode(Node):
             self.map_callback,
             10
         )
+        # 订阅 /clicked_point 主题，用于接收 rviz2 中用户点击的点
+        self.clicked_point_subscriber = self.create_subscription(
+            PointStamped,
+            '/clicked_point',
+            self.clicked_point_callback,
+            10
+        )
         # 发布最终规划路径（nav_msgs/Path）
         self.path_publisher = self.create_publisher(Path, 'planned_path', 10)
 
-        # 用于存储OccupancyGrid数据（当收到第一个地图时触发规划）
+        # Annonce parameters
         self.occupancy_grid = None
+        self.clicked_points: list[tuple[float, float]] = []
+        self.goal_defined = False
+        self.start: list[float, float] = []
+        self.goal: list[float, float] = []
+        self.targets: list[list[float, float]] = []
 
-        # 假设在 TSP 节点的 __init__ 中声明参数（可能已经声明了，如下）：
-        self.declare_parameter('start', '[-0.8, -0.6]')
-        self.declare_parameter('goal', '[0.4, 0.5]')
-        self.declare_parameter('targets', '[[-0.7, -0.4], [0.0, -0.3]]')
-
-        # 获取并解析参数
-        start_str = self.get_parameter('start').value
-        goal_str = self.get_parameter('goal').value
-        targets_str = self.get_parameter('targets').value
-
-        try:
-            # 使用 json.loads 解析字符串，转换为列表
-            self.start = json.loads(start_str)
-            self.goal = json.loads(goal_str)
-            self.targets = json.loads(targets_str)
-            self.get_logger().info(
-                f"Parsed parameters: start {self.start}, goal {self.goal}, targets {self.targets}"
-            )
-        except Exception as e:
-            self.get_logger().error(f"解析参数失败: {e}")
-        # 设置默认值
-            self.start = [-0.8, -0.6]
-            self.goal = [0.4, 0.5]
-            self.targets = [[-0.7, -0.4], [0.0, -0.3]]
+    def parse_points(self):
+        self.start = list(self.clicked_points.pop(0))
+        self.goal = list(self.clicked_points.pop(-1))
+        self.targets = [list(pt) for pt in self.clicked_points]
         
     def map_callback(self, msg: OccupancyGrid):
-        self.get_logger().info("收到 OccupancyGrid, 开始TSP规划")
-        # 转换 OccupancyGrid 消息为二维数组
-        width = msg.info.width
-        height = msg.info.height
-        data = np.array(msg.data).reshape((height, width))
-        self.occupancy_grid = data
+        if not self.goal_defined:
+            self.get_logger().info("OccupancyGrid recieved, but goal is not defined.")
+        else:
+            self.get_logger().info("收到 OccupancyGrid, 开始TSP规划")
+            # 转换 OccupancyGrid 消息为二维数组
+            width = msg.info.width
+            height = msg.info.height
+            data = np.array(msg.data).reshape((height, width))
+            self.occupancy_grid = data
 
-        # 等待一定时间保证OccupancyGrid数据稳定后规划（这里直接调用）
-        self.plan_path(msg.info)
+            # 等待一定时间保证OccupancyGrid数据稳定后规划（这里直接调用）
+            self.plan_path(msg.info)
+
+    def clicked_point_callback(self, msg: PointStamped):
+        # 处理用户点击的点
+        clicked_point = (msg.point.x, msg.point.y)
+        self.get_logger().info(f"Clicked point: {clicked_point}")
+
+        if (clicked_point[0] < _x_outbound_from_ or clicked_point[0] > _x_outbound_to_ or
+            clicked_point[1] < _y_outbound_from_ or clicked_point[1] > _y_outbound_to_):
+            self.get_logger().info("Clicked point is out of bounds, signaling to goal_defined.")
+            self.parse_points()
+            self.goal_defined = True
+        else:
+            self.clicked_points.append(clicked_point)
 
     def world_to_grid(self, pos, info):
         # pos: [x, y] (世界坐标)
@@ -218,6 +232,7 @@ class TSPPlannerNode(Node):
 
         self.path_publisher.publish(path_msg)
         self.get_logger().info("发布规划路径，路径节点数量: {}".format(len(path_msg.poses)))
+
 
 def main(args=None):
     rclpy.init(args=args)
