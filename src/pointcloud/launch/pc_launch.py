@@ -22,9 +22,9 @@ def generate_launch_description():
             package='pointcloud',  # 如果 occupancy map 节点在同一个包中，否则修改为对应的 package 名称
             executable='occupancy_map_node',  # 对应的 executable 名称
             name='occupancy_map_node',
-            parameters=[{'grid_resolution': 0.05,
-                         'grid_width': 100,
-                         'grid_height': 100,
+            parameters=[{'grid_resolution': 0.005,
+                         'grid_width': 1000,
+                         'grid_height': 1000,
                          'origin_x': -2.5,
                          'origin_y': -2.5,
                          'ground_threshold': 0.1}],
