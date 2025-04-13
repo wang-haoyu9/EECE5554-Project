@@ -25,7 +25,7 @@ def generate_launch_description():
             parameters=[{'grid_resolution': 0.1,
                          'grid_width': 100,
                          'grid_height': 100,
-                         'origin_x': -10.0,
-                         'origin_y': -10.0}],
+                         'origin_x': -5.0,
+                         'origin_y': -5.0}],
         ),
     ])
