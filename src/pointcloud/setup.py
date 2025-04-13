@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'pc_node = pointcloud.pointcloud:main',
+            'occupancy_map_node = pointcloud.pc2map:main',
         ],
     },
 )

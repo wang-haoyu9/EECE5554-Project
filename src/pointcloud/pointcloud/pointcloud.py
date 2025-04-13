@@ -28,7 +28,7 @@ class PointCloudNode(Node):
         super().__init__('pointcloud_node')
 
         self.declare_parameter('ply', 'data/box1_high density.ply')
-        self.declare_parameter('rotation', '0,0,0')
+        self.declare_parameter('rotation', '90,0,0')
         self.ply_path = self.get_parameter('ply').value
         # rotation is a tuple of 3 floats (x, y, z)
         self.rotation = tuple(map(float, self.get_parameter('rotation').value.split(',')))
@@ -42,7 +42,7 @@ class PointCloudNode(Node):
         # Publish the first message immediately after initialization
         self.timer_callback()
 
-        timer_period = 300.0 # seconds
+        timer_period = 60.0 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def path_check(self: str) -> bool:
