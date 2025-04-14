@@ -33,11 +33,6 @@ def generate_launch_description():
             package='pointcloud',  # 如果 tsp 节点在同一个包中，否则修改为对应的 package 名称
             executable='tsp_planner',
             name='tsp_planner_node',
-            parameters=[
-                {'start': '[-0.8, -0.6]'},
-                {'goal': '[0.4, 0.5]'},
-                {'targets': '[[-0.7, -0.4], [0.0, -0.3]]'}
-            ],
             output='screen'
         ),        
     ])
