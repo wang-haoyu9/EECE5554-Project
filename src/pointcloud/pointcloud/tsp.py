@@ -2,13 +2,10 @@
 import rclpy
 from rclpy.node import Node
 import numpy as np
-import json
-import math
 from queue import PriorityQueue
 
-from nav_msgs.msg import OccupancyGrid, MapMetaData, Path
+from nav_msgs.msg import OccupancyGrid, Path
 from geometry_msgs.msg import PointStamped, PoseStamped
-from std_msgs.msg import Header
 
 _x_outbound_from_ = -2
 _x_outbound_to_ = 2

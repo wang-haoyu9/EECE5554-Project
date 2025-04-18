@@ -34,5 +34,10 @@ def generate_launch_description():
             executable='tsp_planner',
             name='tsp_planner_node',
             output='screen'
-        ),        
+        ),
+        Node(
+            package='pointcloud',
+            executable='robot_control_node',
+            name='robot_control_node',
+        ),
     ])

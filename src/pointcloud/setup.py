@@ -6,7 +6,7 @@ package_name = 'pointcloud'
 
 setup(
     name=package_name,
-    version='1.0.0',
+    version='1.1.0',
     packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -27,6 +27,7 @@ setup(
             'pc_node = pointcloud.pointcloud:main',
             'occupancy_map_node = pointcloud.pc2map:main',
             'tsp_planner = pointcloud.tsp:main',
+            'robot_control_node = pointcloud.robot_control:main',
         ],
     },
 )
